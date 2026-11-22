@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Igual que el tema claro, pero para cuando el celular está en modo oscuro -->
+    <style name="Theme.TraduciArPor" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/fondo</item>
+    </style>
+</resources>
