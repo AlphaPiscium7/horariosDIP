@@ -79,6 +79,8 @@ dependencies {
 
     // --- Traducción sin internet (Google ML Kit) ---
     implementation("com.google.mlkit:translate:17.0.3")
+    // --- Detección de idioma (¿es español o portugués?). El modelo viene incluido, no se descarga ---
+    implementation("com.google.mlkit:language-id:17.0.6")
     // Permite usar "await()" con las tareas de ML Kit dentro de corrutinas
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
 

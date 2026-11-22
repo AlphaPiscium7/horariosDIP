@@ -9,12 +9,16 @@ import kotlinx.coroutines.flow.map
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Una traducción guardada: el texto en español, el texto en portugués y cuándo se hizo. */
+/** Una traducción guardada: texto original, traducción, idioma de origen y cuándo se hizo. */
 data class Traduccion(
     val original: String,
     val traducido: String,
+    val origen: Idioma = Idioma.ES,
     val fecha: Long = System.currentTimeMillis()
-)
+) {
+    /** Idioma al que se tradujo (el contrario del origen). */
+    val destino: Idioma get() = origen.otro()
+}
 
 // Crea (una sola vez) un pequeño "archivo de preferencias" llamado "historial"
 // dentro del almacenamiento privado de la app. Nadie más puede leerlo.
@@ -50,6 +54,17 @@ class HistorialRepository(private val context: Context) {
         }
     }
 
+    /**
+     * Reemplaza la traducción más reciente (se usa cuando el usuario corrige
+     * a mano el idioma detectado, para no dejar la versión equivocada).
+     */
+    suspend fun reemplazarUltima(traduccion: Traduccion) {
+        context.dataStore.edit { preferencias ->
+            val actual = desdeJson(preferencias[claveHistorial])
+            preferencias[claveHistorial] = aJson(listOf(traduccion) + actual.drop(1))
+        }
+    }
+
     /** Borra todo el historial. */
     suspend fun borrarTodo() {
         context.dataStore.edit { it.remove(claveHistorial) }
@@ -64,6 +79,7 @@ class HistorialRepository(private val context: Context) {
                 JSONObject()
                     .put("o", t.original)
                     .put("t", t.traducido)
+                    .put("i", t.origen.codigo)
                     .put("f", t.fecha)
             )
         }
@@ -76,7 +92,13 @@ class HistorialRepository(private val context: Context) {
             val array = JSONArray(texto)
             List(array.length()) { i ->
                 val obj = array.getJSONObject(i)
-                Traduccion(obj.getString("o"), obj.getString("t"), obj.getLong("f"))
+                Traduccion(
+                    original = obj.getString("o"),
+                    traducido = obj.getString("t"),
+                    // Las traducciones viejas (antes de esta versión) eran todas ES → PT
+                    origen = Idioma.desdeCodigo(obj.optString("i", "es")),
+                    fecha = obj.getLong("f")
+                )
             }
         } catch (e: Exception) {
             emptyList() // Si el dato estuviera dañado, empezamos con la lista vacía

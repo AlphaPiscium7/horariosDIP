@@ -4,7 +4,8 @@ name: Compilar APK
 
 on:
   push:
-    branches: [main]      # cada vez que se sube algo a "main"
+    # Compila en cada push a cualquier rama, pero solo publica la Release desde "main"
+    branches: ["**"]
   workflow_dispatch:      # también se puede lanzar a mano desde la pestaña "Actions"
 
 permissions:
@@ -41,6 +42,7 @@ jobs:
           path: TraductorESPT.apk
 
       - name: Publicar la Release
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
@@ -48,5 +50,6 @@ jobs:
           body: |
             APK listo para instalar en Android 7.0 o superior.
             Descargá **TraductorESPT.apk** desde el celular y abrilo para instalar.
+          target_commitish: ${{ github.sha }}
           files: TraductorESPT.apk
           make_latest: true
