@@ -17,12 +17,28 @@ android {
         applicationId = "com.traduciar.por"
         minSdk = 24          // Android 7.0 como mínimo
         targetSdk = 35       // Optimizada para Android 15
-        versionCode = 1
-        versionName = "1.0"
+        // GitHub Actions pasa el número de compilación (-PnumeroVersion=N) para que
+        // cada APK nuevo tenga una versión mayor y se pueda instalar encima del anterior.
+        val numero = (project.findProperty("numeroVersion") as String?)?.toIntOrNull() ?: 1
+        versionCode = numero
+        versionName = "1.0.$numero"
+    }
+
+    // Firma del APK. Android solo instala apps firmadas, y para poder ACTUALIZAR la app
+    // sin desinstalarla, todas las versiones tienen que estar firmadas con la misma clave.
+    // Esta clave está guardada en el repo: sirve para uso personal, NO para Play Store.
+    signingConfigs {
+        create("personal") {
+            storeFile = file("firma/traduciar.jks")
+            storePassword = "traduciar123"
+            keyAlias = "traduciar"
+            keyPassword = "traduciar123"
+        }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("personal")
             // Reduce el tamaño del APK final eliminando código que no se usa
             isMinifyEnabled = true
             isShrinkResources = true
